@@ -1,3 +1,4 @@
+#!/usr/bin/env perl
 #
 # Disk Integrity Checker and De-duplicator
 #
@@ -13,11 +14,13 @@ use DB_File;
 
 
 use Getopt::Std;
-my $usage = "usage: $0 -s source_directory [-t source_directory] [-l logfile] [-X dbmfile] [-f] [-v]\n";
-$usage .= "\t-f force checksum calculation and validate against pre-existing\n";
-$usage .= "\t-v verbose\n";
-$usage .= "\t-D check for duplicates\n";
-$usage .= "\t-X create duplicate exclusion list based on file\n";
+my $usage = <<EOM;
+usage: $0 -s source_directory [-t source_directory] [-l logfile] [-X dbmfile] [-f] [-v]
+\t-f force checksum calculation and validate against pre-existing
+\t-v verbose
+\t-D check for duplicates
+\t-X create duplicate exclusion list based on file
+EOM
 my %opt;
 die ($usage) unless (getopts ('l:s:t:fDvCI:X:', \%opt));
 
@@ -167,7 +170,7 @@ foreach my $item (@dirContents)
     print STDERR "MD5 = $item, $file $md5\n" if (DEBUG);
      $fileMD5{$file} = $md5;
     if ($checkDuplicates or $compareDrives){
-      $duplicateMD5{$md5}[0]++; 
+      $duplicateMD5{$md5}[0]++;
       $duplicateMD5{$md5}[1] .= $directory . '/'.$file .	"\n";
       $duplicateMD5{$md5}[2] = (-s $directory . '/'.$file);
       $duplicateMD5{$md5}[3] .= '#REMrm "' .$directory . '/'.$file ."\"\n";
@@ -227,7 +230,7 @@ foreach my $item (@dirContents)
       `touch "$directory/.$item_fixed.$md5[0]"`;
 
       if ($checkDuplicates or $compareDrives){
-        $duplicateMD5{$md5[0]}[0]++; 
+        $duplicateMD5{$md5[0]}[0]++;
         $duplicateMD5{$md5[0]}[1] .= $fullPath ."\n";
         $duplicateMD5{$md5[0]}[2] = (-s $fullPath);
         $duplicateMD5{$md5[0]}[3] .= '#REMrm "'.$fullPath ."\"\n";
@@ -287,7 +290,7 @@ foreach my $item (@dirContents)
     print STDERR "MD5 = $item, $file $md5\n" if (DEBUG);
     $fileMD5{$file} = $md5;
     if ($checkDuplicates or $compareDrives){
-      $duplicateMD52{$md5}[0]++; 
+      $duplicateMD52{$md5}[0]++;
       $duplicateMD52{$md5}[1] .= $directory . '/'.$file ."\n";
       $duplicateMD52{$md5}[2] = (-s $directory . '/'.$file);
       $duplicateMD52{$md5}[3] .= '#REMrm "'.$directory . '/'.$file ."\"\n";
@@ -347,7 +350,7 @@ foreach my $item (@dirContents)
 
       `touch "$directory/.$item_fixed.$md5[0]"`;
       if ($checkDuplicates or $compareDrives){
-        $duplicateMD52{$md5[0]}[0]++; 
+        $duplicateMD52{$md5[0]}[0]++;
         $duplicateMD52{$md5[0]}[1] .= $fullPath ."\n";
         $duplicateMD52{$md5[0]}[2] = (-s $fullPath);
         $duplicateMD52{$md5[0]}[3] .= '#REMrm "'.$fullPath ."\"\n";
