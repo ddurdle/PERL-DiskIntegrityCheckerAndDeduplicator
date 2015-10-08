@@ -15,14 +15,16 @@ use DB_File;
 
 use Getopt::Std;
 my $usage = <<EOM;
-usage: $0 -s source_directory [-t source_directory] [-l logfile] [-X dbmfile] [-f] [-v]
+usage: $0 -s source_directory [-t source_directory] [-l logfile] [-X dbmfile] [-I dbmfile] [-i size] -f] [-v]
 \t-f force checksum calculation and validate against pre-existing
 \t-v verbose
 \t-D check for duplicates
-\t-X create duplicate exclusion list based on file
+\t-X create duplicate exclusion list based on MD5 dbm file
+\t-I create duplicate inclusion list based on MD5 dbm file
+\t-i ignore size (ignore files < this size)
 EOM
 my %opt;
-die ($usage) unless (getopts ('l:s:t:fDvCI:X:', \%opt));
+die ($usage) unless (getopts ('l:s:t:fDvCi:I:X:', \%opt));
 
 die($usage) unless ($opt{s} ne '');
 
@@ -38,7 +40,7 @@ my $compareDrives = 0;
 $compareDrives = 1 if $opt{C};
 
 my $ignoreSize = 0;
-$ignoreSize = $opt{I} if $opt{I};
+$ignoreSize = $opt{i} if $opt{i};
 
 my $fileCount=0;
 my $dirCount=0;
