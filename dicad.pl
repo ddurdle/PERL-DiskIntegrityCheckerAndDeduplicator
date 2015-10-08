@@ -15,16 +15,17 @@ use DB_File;
 
 use Getopt::Std;
 my $usage = <<EOM;
-usage: $0 -s source_directory [-t source_directory] [-l logfile] [-X dbmfile] [-I dbmfile] [-i size] -f] [-v]
+usage: $0 -s source_directory [-t source_directory] [-l logfile] [-X dbmfile] [-I dbmfile [-d destination_path]] [-i size] [-f] [-v]
 \t-f force checksum calculation and validate against pre-existing
 \t-v verbose
 \t-D check for duplicates
 \t-X create duplicate exclusion list based on MD5 dbm file
 \t-I create duplicate inclusion list based on MD5 dbm file
+\t\t-d destination path
 \t-i ignore size (ignore files < this size)
 EOM
 my %opt;
-die ($usage) unless (getopts ('l:s:t:fDvCi:I:X:', \%opt));
+die ($usage) unless (getopts ('l:s:t:fDvCi:I:d:X:', \%opt));
 
 die($usage) unless ($opt{s} ne '');
 
@@ -77,7 +78,9 @@ if ($opt{I} ne ''){
 	  	if ((defined($dbase{$md5 . '_0'}) and $dbase{$md5 . '_0'} ne '') or (defined($dbase{$md5 . '_'}) and $dbase{$md5 . '_'} ne '')){
 	  	}else{
     		print STDERR $duplicateMD5{$md5}[1] . "\n";
-    		print LOG $duplicateMD5{$md5}[1] . "\n";
+    		my ($path) = $duplicateMD5{$md5}[1] =~ m%(.*?)\/[^\/]+$%;
+    		print LOG 'mkdir -p ' .$path . "\n";
+    		print LOG 'cp "' . $duplicateMD5{$md5}[1] .'" "' .$opt{d}. "\"\n";
 	  	}
 	}
 	untie $dbase;
