@@ -79,7 +79,9 @@ if ($opt{I} ne ''){
 	  	}else{
     		print STDERR $duplicateMD5{$md5}[1] . "\n";
     		$duplicateMD5{$md5}[1] =~ s%\n%%;
-    		my $var = quotemeta $opt{d};
+
+			#remove filename and source from path
+    		my $var = quotemeta $opt{s};
     		my ($path) = $duplicateMD5{$md5}[1] =~ m%$var\/(.*?)\/[^\/]+$%;
     		print LOG 'mkdir -p "' .$opt{d}. '/'.$path . "\"\n";
     		print LOG 'cp "' . $duplicateMD5{$md5}[1] .'" "' .$opt{d}. "\"\n";
