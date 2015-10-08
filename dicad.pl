@@ -70,7 +70,33 @@ if ($opt{X} ne ''){
 	close (LOG) if ($logfile ne '');
 	exit(0);
 }
-
+if ($opt{I} ne ''){
+	open (LOG, '>'.$logfile) if ($logfile ne '');
+	tie( my %dbase, DB_File, $opt{I} ,O_RDONLY, 0666) or die "can't open ". $opt{I}.": $!";
+	foreach my $md5 (keys %duplicateMD5){
+	  	if ((defined($dbase{$md5 . '_0'}) and $dbase{$md5 . '_0'} ne '') or (defined($dbase{$md5 . '_'}) and $dbase{$md5 . '_'} ne '')){
+	  	}else{
+    		print STDERR $duplicateMD5{$md5}[1] . "\n";
+    		print LOG $duplicateMD5{$md5}[1] . "\n";
+	  	}
+	}
+	untie $dbase;
+	close (LOG) if ($logfile ne '');
+	exit(0);
+}
+if ($opt{I} ne ''){
+	open (LOG, '>'.$logfile) if ($logfile ne '');
+	tie( my %dbase, DB_File, $opt{I} ,O_RDONLY, 0666) or die "can't open ". $opt{I}.": $!";
+	foreach my $md5 (keys %duplicateMD5){
+	  	if ((defined($dbase{$md5 . '_0'}) and $dbase{$md5 . '_0'} ne '') or (defined($dbase{$md5 . '_'}) and $dbase{$md5 . '_'} ne '')){
+    		print STDERR $duplicateMD5{$md5}[1] . "\n";
+    		print LOG $duplicateMD5{$md5}[1] . "\n";
+	  	}
+	}
+	untie $dbase;
+	close (LOG) if ($logfile ne '');
+	exit(0);
+}
 #report duplicates
 if ($checkDuplicates){
 	my $duplicateCount=0;
@@ -152,17 +178,7 @@ sub scanDir($){
 
 	#scan MD5 files
 	foreach my $item (@dirContents){
-	#  if ((-s $directory . '/'.$item == 0) and $item =~ m%^\.\..*%){
-	#    print STDERR "DELETE = $item\n";
-	#    unlink ($directory . '/'.$item) if ($item ne '');
-	#  }
-	#  if ((-s $directory . '/'.$item == 0) and $item =~ m%^\..*\.{1}[^\.]{32}$%){
-	#
-	#  }elsif ((-s $directory . '/'.$item == 0) and $item =~ m%^\..*\.{1}[^\.]{33,37}$%){
-	#    my ($file,$md5) = $item =~ m%^\.(.*\.{1}[^\.]{3,4})([^\.]{32})$%;
-	#    print STDERR "rename = ".$directory . '/'.$item.','.$directory . '/.'.$file.'.'.  $md5."\n";
-	#    rename $directory . '/'.$item,$directory . '/.'.$file.'.'.  $md5;
-	#  }
+
 		if ($item =~ m%^\..*\.[^\.]{32}$%){
 	    	my ($file,$md5) = $item =~ m%^\.(.*)\.([^\.]{32})$%;
 	    	print STDERR "MD5 = $item, $file $md5\n" if (DEBUG);
