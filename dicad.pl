@@ -78,8 +78,9 @@ if ($opt{I} ne ''){
 	  	if ((defined($dbase{$md5 . '_0'}) and $dbase{$md5 . '_0'} ne '') or (defined($dbase{$md5 . '_'}) and $dbase{$md5 . '_'} ne '')){
 	  	}else{
     		print STDERR $duplicateMD5{$md5}[1] . "\n";
+    		$duplicateMD5{$md5}[1] =~ s%\n%%;
     		my ($path) = $duplicateMD5{$md5}[1] =~ m%(.*?)\/[^\/]+$%;
-    		print LOG 'mkdir -p ' .$path . "\n";
+    		print LOG 'mkdir -p "' .$path . "\"\n";
     		print LOG 'cp "' . $duplicateMD5{$md5}[1] .'" "' .$opt{d}. "\"\n";
 	  	}
 	}
