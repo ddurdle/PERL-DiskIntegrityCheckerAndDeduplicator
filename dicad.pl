@@ -79,8 +79,8 @@ if ($opt{I} ne ''){
 	  	}else{
     		print STDERR $duplicateMD5{$md5}[1] . "\n";
     		$duplicateMD5{$md5}[1] =~ s%\n%%;
-    		my $var = $opt{d};
-    		my ($path) = $duplicateMD5{$md5}[1] =~ m%$var\/(.*?)\/[^\/]+$%;
+    		my $var = quotemeta $opt{d};
+    		my ($path) = $duplicateMD5{$md5}[1] =~ m%\Q$var\/(.*?)\/[^\/]+$%;
     		print LOG 'mkdir -p "' .$opt{d}. '/'.$path . "\"\n";
     		print LOG 'cp "' . $duplicateMD5{$md5}[1] .'" "' .$opt{d}. "\"\n";
 	  	}
