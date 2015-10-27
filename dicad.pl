@@ -85,6 +85,7 @@ if ($opt{I} ne ''){
     		my ($path) = $duplicateMD5{$md5}[1] =~ m%$var\/(.*?)\/[^\/]+$%;
     		print LOG 'mkdir -p "' .$opt{d}. '/'.$path . "\"\n";
     		print LOG 'cp "' . $duplicateMD5{$md5}[1] .'" "' .$opt{d}.'/'.$path. "\"\n";
+    		print LOG 'cp ".' . $duplicateMD5{$md5}[1] .'.*" "' .$opt{d}.'/'.$path. "\"\n";
 	  	}
 	}
 	untie $dbase;
