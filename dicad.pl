@@ -77,17 +77,19 @@ if ($opt{I} ne ''){
 	foreach my $md5 (keys %duplicateMD5){
 	  	if ((defined($dbase{$md5 . '_0'}) and $dbase{$md5 . '_0'} ne '') or (defined($dbase{$md5 . '_'}) and $dbase{$md5 . '_'} ne '')){
 	  	}else{
-    		print STDERR $duplicateMD5{$md5}[1] . "\n";
-    		$duplicateMD5{$md5}[1] =~ s%\n%%;
+	  		if ($duplicateMD5{$md5}[2] > $ignoreSize){
+	    		print STDERR $duplicateMD5{$md5}[1] . "\n";
+	    		$duplicateMD5{$md5}[1] =~ s%\n%%;
 
-			#remove filename and source from path
-    		my $var = quotemeta $opt{s};
-    		my ($path) = $duplicateMD5{$md5}[1] =~ m%$var\/(.*?)\/[^\/]+$%;
-    		my $md5path = $duplicateMD5{$md5}[1];
-			$md5path =~ s%\/([^\/]+)$%\/\.$1\.\*%;
-    		print LOG 'mkdir -p "' .$opt{d}. '/'.$path . "\"\n";
-    		print LOG 'cp "' . $duplicateMD5{$md5}[1] .'" "' .$opt{d}.'/'.$path. "\"\n";
-    		print LOG 'cp "' . $md5path .'" "' .$opt{d}.'/'.$path. "\"\n";
+				#remove filename and source from path
+	    		my $var = quotemeta $opt{s};
+	    		my ($path) = $duplicateMD5{$md5}[1] =~ m%$var\/(.*?)\/[^\/]+$%;
+	    		my $md5path = $duplicateMD5{$md5}[1];
+				$md5path =~ s%\/([^\/]+)$%\/\.$1\.\*%;
+	    		print LOG 'mkdir -p "' .$opt{d}. '/'.$path . "\"\n";
+	    		print LOG 'cp "' . $duplicateMD5{$md5}[1] .'" "' .$opt{d}.'/'.$path. "\"\n";
+	    		print LOG 'cp "' . $md5path .'" "' .$opt{d}.'/'.$path. "\"\n";
+	  		}
 	  	}
 	}
 	untie $dbase;
