@@ -23,9 +23,10 @@ usage: $0 -s source_directory [-t source_directory] [-l logfile] [-X dbmfile] [-
 \t-I create duplicate inclusion list based on MD5 dbm file
 \t\t-d destination path
 \t-i ignore size (ignore files < this size)
+\t-S print summary information
 EOM
 my %opt;
-die ($usage) unless (getopts ('l:s:t:fDvCi:I:d:X:', \%opt));
+die ($usage) unless (getopts ('l:s:t:fDvCi:I:d:X:S', \%opt));
 
 die($usage) unless ($opt{s} ne '');
 
@@ -42,6 +43,9 @@ $compareDrives = 1 if $opt{C};
 
 my $ignoreSize = 0;
 $ignoreSize = $opt{i} if $opt{i};
+
+my $printSummary = 0;
+$printSummary = 1 if $opt{S};
 
 my $fileCount=0;
 my $dirCount=0;
@@ -72,10 +76,14 @@ if ($opt{X} ne ''){
 	exit(0);
 }
 if ($opt{I} ne ''){
+	my $skipCount = 0;
+	my $copyCount = 0;
+	my $ignoreCount = 0;
 	open (LOG, '>'.$logfile) if ($logfile ne '');
 	tie( my %dbase, DB_File, $opt{I} ,O_RDONLY, 0666) or die "can't open ". $opt{I}.": $!";
 	foreach my $md5 (keys %duplicateMD5){
 	  	if ((defined($dbase{$md5 . '_0'}) and $dbase{$md5 . '_0'} ne '') or (defined($dbase{$md5 . '_'}) and $dbase{$md5 . '_'} ne '')){
+	    	$skipCount++;
 	  	}else{
 	  		if ($duplicateMD5{$md5}[2] > $ignoreSize){
 	    		print STDERR $duplicateMD5{$md5}[1] . "\n";
@@ -89,11 +97,19 @@ if ($opt{I} ne ''){
 	    		print LOG 'mkdir -p "' .$opt{d}. '/'.$path . "\"\n";
 	    		print LOG 'cp "' . $duplicateMD5{$md5}[1] .'" "' .$opt{d}.'/'.$path. "\"\n";
 	    		print LOG 'cp "' . $md5path .'" "' .$opt{d}.'/'.$path. "\"\n";
+	    		$copyCount++;
+	  		}else{
+	  			$ignoreCount++;
 	  		}
+
 	  	}
 	}
 	untie $dbase;
 	close (LOG) if ($logfile ne '');
+
+	if ($printSummary){
+		print STDOUT "Summary Information\n\tCopy\t$copyCount\n\tSkip\t$skipCount\n\tIgnore\t$ignoreCount\n";
+	}
 	exit(0);
 }
 if ($opt{I} ne ''){
