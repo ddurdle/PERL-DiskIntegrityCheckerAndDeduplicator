@@ -24,9 +24,10 @@ usage: $0 -s source_directory [-t source_directory] [-l logfile] [-X dbmfile] [-
 \t\t-d destination path
 \t-i ignore size (ignore files < this size)
 \t-S print summary information
+\t-c create duplicate inclusion list -  MD5 confirguration file
 EOM
 my %opt;
-die ($usage) unless (getopts ('l:s:t:fDvCi:I:d:X:S', \%opt));
+die ($usage) unless (getopts ('l:s:t:fDvCi:I:d:X:Sc', \%opt));
 
 die($usage) unless ($opt{s} ne '');
 
@@ -62,6 +63,8 @@ if ($opt{t} ne ''){
 	scanDir2($opt{t});
 }
 
+
+
 if ($opt{X} ne ''){
 	open (LOG, '>'.$logfile) if ($logfile ne '');
 	tie( my %dbase, DB_File, $opt{X} ,O_RDONLY, 0666) or die "can't open ". $opt{X}.": $!";
@@ -76,40 +79,62 @@ if ($opt{X} ne ''){
 	exit(0);
 }
 if ($opt{I} ne ''){
-	my $skipCount = 0;
-	my $copyCount = 0;
-	my $ignoreCount = 0;
+
 	open (LOG, '>'.$logfile) if ($logfile ne '');
-	tie( my %dbase, DB_File, $opt{I} ,O_RDONLY, 0666) or die "can't open ". $opt{I}.": $!";
-	foreach my $md5 (keys %duplicateMD5){
-	  	if ((defined($dbase{$md5 . '_0'}) and $dbase{$md5 . '_0'} ne '') or (defined($dbase{$md5 . '_'}) and $dbase{$md5 . '_'} ne '')){
-	    	$skipCount++;
-	  	}else{
-	  		if ($duplicateMD5{$md5}[2] > $ignoreSize){
-	    		print STDERR $duplicateMD5{$md5}[1] . "\n";
-	    		$duplicateMD5{$md5}[1] =~ s%\n%%;
 
-				#remove filename and source from path
-	    		my $var = quotemeta $opt{s};
-	    		my ($path) = $duplicateMD5{$md5}[1] =~ m%$var\/(.*?)\/[^\/]+$%;
-	    		my $md5path = $duplicateMD5{$md5}[1];
-				$md5path =~ s%\/([^\/]+)$%\/\.$1\.\*%;
-	    		print LOG 'mkdir -p "' .$opt{d}. '/'.$path . "\"\n";
-	    		print LOG 'cp "' . $duplicateMD5{$md5}[1] .'" "' .$opt{d}.'/'.$path. "\"\n";
-	    		print LOG 'cp "' . $md5path .'" "' .$opt{d}.'/'.$path. "\"\n";
-	    		$copyCount++;
-	  		}else{
-	  			$ignoreCount++;
-	  		}
+	my @DBMS;
+	if ($opt{c}){
+		open(DBMS, $opt{I}) or die "can't open index file" . $opt{I}. ": $!";
+		while (my $line = <DBMS>){
 
-	  	}
+			my ($name,$dbm) = $line =~ m%^([^\t]+)\t([^\n]+)\n%;
+			print STDERR "finding $name, $dbm\n";
+			push(@DBMS, [$name,$dbm]);
+		}
+		close(DBMS);
+
+	}else{
+		push(@DBMS, ['default', $opt{I}]);
 	}
-	untie $dbase;
-	close (LOG) if ($logfile ne '');
+	for (my $i=0; $i <= $#DBMS; $i++){
+		my $skipCount = 0;
+		my $copyCount = 0;
+		my $ignoreCount = 0;
+		my $name = $DBMS[$i][0];
+		my $DBM = $DBMS[$i][1];
+		tie( my %dbase, DB_File, $DBM ,O_RDONLY, 0666) or die "can't open DBM ". $DBM.": $!";
+		foreach my $md5 (keys %duplicateMD5){
+		  	if ((defined($dbase{$md5 . '_0'}) and $dbase{$md5 . '_0'} ne '') or (defined($dbase{$md5 . '_'}) and $dbase{$md5 . '_'} ne '')){
+		    	$skipCount++;
+		  	}else{
+		  		if ($duplicateMD5{$md5}[2] > $ignoreSize){
+		    		print STDERR $duplicateMD5{$md5}[1] . "\n";
+		    		$duplicateMD5{$md5}[1] =~ s%\n%%;
 
-	if ($printSummary){
-		print STDOUT "Summary Information\n\tCopy\t$copyCount\n\tSkip\t$skipCount\n\tIgnore\t$ignoreCount\n";
+					#remove filename and source from path
+		    		my $var = quotemeta $opt{s};
+		    		my ($path) = $duplicateMD5{$md5}[1] =~ m%$var\/(.*?)\/[^\/]+$%;
+		    		my $md5path = $duplicateMD5{$md5}[1];
+					$md5path =~ s%\/([^\/]+)$%\/\.$1\.\*%;
+		    		print LOG 'mkdir -p "' .$opt{d}. '/'.$path . "\"\n";
+		    		print LOG 'cp "' . $duplicateMD5{$md5}[1] .'" "' .$opt{d}.'/'.$path. "\"\n";
+		    		print LOG 'cp "' . $md5path .'" "' .$opt{d}.'/'.$path. "\"\n";
+		    		$copyCount++;
+		  		}else{
+		  			$ignoreCount++;
+		  		}
+
+		  	}
+		}
+		untie $dbase;
+		close (LOG) if ($logfile ne '');
+
+		if ($printSummary){
+			print STDOUT "Summary Information\n$name\n\tCopy\t$copyCount\n\tSkip\t$skipCount\n\tIgnore\t$ignoreCount\n";
+		}
 	}
+
+
 	exit(0);
 }
 if ($opt{I} ne ''){
