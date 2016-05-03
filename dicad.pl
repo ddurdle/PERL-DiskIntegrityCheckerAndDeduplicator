@@ -115,10 +115,10 @@ if ($opt{I} ne ''){
 		    		my $var = quotemeta $opt{s};
 		    		my ($path) = $duplicateMD5{$md5}[1] =~ m%$var\/(.*?)\/[^\/]+$%;
 		    		my $md5path = $duplicateMD5{$md5}[1];
-					$md5path =~ s%\/([^\/]+)$%\/\.$1\.\*%;
+					$md5path =~ s%\/([^\/]+)$%\/\.$1\.%;
 		    		print LOG 'mkdir -p "' .$opt{d}. '/'.$path . "\"\n";
 		    		print LOG 'cp "' . $duplicateMD5{$md5}[1] .'" "' .$opt{d}.'/'.$path. "\"\n";
-		    		print LOG 'cp "' . $md5path .'" "' .$opt{d}.'/'.$path. "\"\n";
+		    		print LOG 'cp "' . $md5path .'"* "' .$opt{d}.'/'.$path. "\"\n";
 		    		$copyCount++;
 		  		}else{
 		  			$ignoreCount++;
