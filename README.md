@@ -8,3 +8,5 @@ usage: dicad.pl -s source_directory [-t source_directory] [-l logfile] [-X dbmfi
 	-I create duplicate inclusion list based on MD5 dbm file
 		-d destination path
 	-i ignore size (ignore files < this size)
+	-S show summary counts
+	-c use a tab deliminate list of enteries for -I or -X
