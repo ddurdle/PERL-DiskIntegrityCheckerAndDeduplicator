@@ -319,6 +319,7 @@ sub scanDir($){
 		#item is a file and no MD5 file exists
 		}elsif (-f $fullPath){
 			if ($FISI){
+				$fileCount++;
 				my $fileSize = -s $fullPath_fixed;
 				my $md5 = getMD5String($item_fixed.$fileSize);
 
