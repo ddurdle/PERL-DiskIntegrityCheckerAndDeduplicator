@@ -41,6 +41,7 @@ $isVerbose = 1 if $opt{v};
 my $checkDuplicates = 0;
 $checkDuplicates = 1 if $opt{D};
 
+my $displacedMD5 = $opt{d};
 my $compareDrives = 0;
 $compareDrives = 1 if $opt{C};
 
@@ -233,22 +234,46 @@ sub scanDir($){
 	my @dirContents = readdir(IMD);
 
 	my %fileMD5;
+	if ($displacedMD5 ne ''){
+		print STDERR 'Scanning dir '.$displacedMD5."\n";
+		opendir(IMD, $displacedMD5) || die("Cannot open directory ". $displacedMD5);
+		my @dirContentsMD5 = readdir(IMD);
 
-	#scan MD5 files
-	foreach my $item (@dirContents){
+		#scan MD5 files
+		foreach my $item (@dirContentsMD5){
 
-		if ($item =~ m%^\..*\.[^\.]{32}$%){
-	    	my ($file,$md5) = $item =~ m%^\.(.*)\.([^\.]{32})$%;
-	    	print STDERR "MD5 = $item, $file $md5\n" if (DEBUG);
-	     	$fileMD5{$file} = $md5;
-	    	if ($checkDuplicates or $compareDrives){
-	      		$duplicateMD5{$md5}[0]++;
-	      		$duplicateMD5{$md5}[1] .= $directory . '/'.$file .	"\n";
-	      		$duplicateMD5{$md5}[2] = (-s $directory . '/'.$file);
-	      		$duplicateMD5{$md5}[3] .= '#REMrm "' .$directory . '/'.$file ."\"\n";
-	      		$duplicateMD5{$md5}[3] .= "#REMrm \"$directory/.$file.$md5\"\n";
-	    	}
-	  	}
+			if ($item =~ m%^\..*\.[^\.]{32}$%){
+		    	my ($file,$md5) = $item =~ m%^\.(.*)\.([^\.]{32})$%;
+		    	print STDERR "MD5 = $item, $file $md5\n" if (DEBUG);
+		     	$fileMD5{$file} = $md5;
+		    	if ($checkDuplicates or $compareDrives){
+		      		$duplicateMD5{$md5}[0]++;
+		      		$duplicateMD5{$md5}[1] .= $directory . '/'.$file .	"\n";
+		      		$duplicateMD5{$md5}[2] = (-s $directory . '/'.$file);
+		      		$duplicateMD5{$md5}[3] .= '#REMrm "' .$directory . '/'.$file ."\"\n";
+		      		$duplicateMD5{$md5}[3] .= "#REMrm \"$directory/.$file.$md5\"\n";
+		    	}
+		  	}
+		}
+
+	}else{
+		#scan MD5 files
+		foreach my $item (@dirContents){
+
+			if ($item =~ m%^\..*\.[^\.]{32}$%){
+		    	my ($file,$md5) = $item =~ m%^\.(.*)\.([^\.]{32})$%;
+		    	print STDERR "MD5 = $item, $file $md5\n" if (DEBUG);
+		     	$fileMD5{$file} = $md5;
+		    	if ($checkDuplicates or $compareDrives){
+		      		$duplicateMD5{$md5}[0]++;
+		      		$duplicateMD5{$md5}[1] .= $directory . '/'.$file .	"\n";
+		      		$duplicateMD5{$md5}[2] = (-s $directory . '/'.$file);
+		      		$duplicateMD5{$md5}[3] .= '#REMrm "' .$directory . '/'.$file ."\"\n";
+		      		$duplicateMD5{$md5}[3] .= "#REMrm \"$directory/.$file.$md5\"\n";
+		    	}
+		  	}
+		}
+
 	}
 
 	#scan files [skip dirs] (non-MD5)
@@ -311,7 +336,11 @@ sub scanDir($){
 			if ($md5[0] ne ''){
 				print STDERR "file = " . $item . ',' . $md5[0] ."\n" if ($isVerbose);
 
-				`touch "$directory/.$item_fixed.$md5[0]"`;
+				if ($displacedMD5 ne ''){
+					`touch "$displacedMD5/.$item_fixed.$md5[0]"`;
+				}else{
+					`touch "$directory/.$item_fixed.$md5[0]"`;
+				}
 
 				if ($checkDuplicates or $compareDrives){
 					$duplicateMD5{$md5[0]}[0]++;
