@@ -15,19 +15,21 @@ use DB_File;
 
 use Getopt::Std;
 my $usage = <<EOM;
-usage: $0 -s source_directory [-t source_directory] [-l logfile] [-X dbmfile] [-I dbmfile [-d destination_path]] [-i size] [-f] [-v]
+usage: $0 -s source_directory [-t source_directory] [-d displacement_directory]  [-l logfile] [-X dbmfile] [-F] [-I dbmfile [-d destination_path]] [-i size] [-f] [-v]
 \t-f force checksum calculation and validate against pre-existing
 \t-v verbose
 \t-D check for duplicates
 \t-X create duplicate exclusion list based on MD5 dbm file
 \t-I create duplicate inclusion list based on MD5 dbm file
+\t-F treat -X or -I as FISI dbm instead of MD5 dbm
 \t\t-d destination path
 \t-i ignore size (ignore files < this size)
 \t-S print summary information
 \t-c create duplicate inclusion list -  MD5 confirguration file
+\t-d displacment directory
 EOM
 my %opt;
-die ($usage) unless (getopts ('l:s:t:fDvCi:I:d:X:Sc', \%opt));
+die ($usage) unless (getopts ('l:s:t:fDvCi:I:d:X:ScF', \%opt));
 
 die($usage) unless ($opt{s} ne '');
 
@@ -47,6 +49,9 @@ $ignoreSize = $opt{i} if $opt{i};
 
 my $printSummary = 0;
 $printSummary = 1 if $opt{S};
+
+my $FISI = 0;
+$FISI = 1 if $opt{F};
 
 my $fileCount=0;
 my $dirCount=0;
@@ -286,6 +291,20 @@ sub scanDir($){
 
 		#item is a file and no MD5 file exists
 		}elsif (-f $fullPath){
+			if ($FISI){
+				my $fileSize = -s $fullPath_fixed;
+				my $md5 = getMD5String($item_fixed.$fileSize);
+
+
+				if ($checkDuplicates or $compareDrives){
+					$duplicateMD5{$md5}[0]++;
+					$duplicateMD5{$md5}[1] .= $fullPath ."\n";
+					$duplicateMD5{$md5}[2] = (-s $fullPath);
+					$duplicateMD5{$md5}[3] .= '#REMrm "'.$fullPath ."\"\n";
+					$duplicateMD5{$md5}[3] .= "#REMrm \"$directory/.$item.$md5[0]\"\n";
+				}
+			}else{
+
 			$fileCount++;
 			open (MD5, "md5sum \"$fullPath_fixed\" |");
 			my @md5 = split(' ', <MD5>);
@@ -301,6 +320,7 @@ sub scanDir($){
 					$duplicateMD5{$md5[0]}[3] .= '#REMrm "'.$fullPath ."\"\n";
 					$duplicateMD5{$md5[0]}[3] .= "#REMrm \"$directory/.$item.$md5[0]\"\n";
 				}
+			}
 			}
 
 		}else{
@@ -445,4 +465,16 @@ sub scanDir2($){
 	}
 	closedir(IMD);
 
+}
+
+if ($FISI){
+use Digest::MD5;
+sub getMD5String($){
+  my $md5String = shift;
+
+  my $md5 = Digest::MD5->new;
+  my $md5sum = $md5->add($md5String)->hexdigest;
+  return $md5sum;
+
+}
 }
