@@ -15,7 +15,7 @@ use DB_File;
 
 use Getopt::Std;
 my $usage = <<EOM;
-usage: $0 -s source_directory [-t source_directory] [-d displacement_directory]  [-l logfile] [-X dbmfile] [-F] [-I dbmfile [-d destination_path]] [-i size] [-f] [-v]
+usage: $0 -s source_directory [-t source_directory] [-d displacement_directory]  [-l logfile] [-X dbmfile] [-F] [-I dbmfile [-a destination_path]] [-d displayment_md5_path] [-i size] [-f] [-v]
 \t-f force checksum calculation and validate against pre-existing
 \t-v verbose
 \t-D check for duplicates
@@ -27,6 +27,8 @@ usage: $0 -s source_directory [-t source_directory] [-d displacement_directory] 
 \t-S print summary information
 \t-c create duplicate inclusion list -  MD5 confirguration file
 \t-d displacment directory
+\t-a destination directory
+
 EOM
 my %opt;
 die ($usage) unless (getopts ('l:s:t:fDvCi:I:d:X:ScF', \%opt));
@@ -122,9 +124,9 @@ if ($opt{I} ne ''){
 		    		my ($path) = $duplicateMD5{$md5}[1] =~ m%$var\/(.*?)\/[^\/]+$%;
 		    		my $md5path = $duplicateMD5{$md5}[1];
 					$md5path =~ s%\/([^\/]+)$%\/\.$1\.%;
-		    		print LOG 'mkdir -p "' .$opt{d}. '/'.$path . "\"\n";
-		    		print LOG 'cp "' . $duplicateMD5{$md5}[1] .'" "' .$opt{d}.'/'.$path. "\"\n";
-		    		print LOG 'cp "' . $md5path .'"* "' .$opt{d}.'/'.$path. "\"\n";
+		    		print LOG 'mkdir -p "' .$opt{a}. '/'.$path . "\"\n";
+		    		print LOG 'cp "' . $duplicateMD5{$md5}[1] .'" "' .$opt{a}.'/'.$path. "\"\n";
+		    		print LOG 'cp "' . $md5path .'"* "' .$opt{a}.'/'.$path. "\"\n";
 		    		$copyCount++;
 		  		}else{
 		  			$ignoreCount++;
