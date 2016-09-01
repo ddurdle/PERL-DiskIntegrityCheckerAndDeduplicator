@@ -31,7 +31,7 @@ usage: $0 -s source_directory [-t source_directory] [-d displacement_directory] 
 
 EOM
 my %opt;
-die ($usage) unless (getopts ('l:s:t:fDvCi:I:d:X:ScF', \%opt));
+die ($usage) unless (getopts ('l:s:t:fDvCi:I:d:X:ScFa:', \%opt));
 
 die($usage) unless ($opt{s} ne '');
 
